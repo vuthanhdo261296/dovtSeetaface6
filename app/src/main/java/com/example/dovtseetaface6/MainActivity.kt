@@ -2,17 +2,10 @@ package com.example.dovtseetaface6
 
 import android.content.Intent
 import android.content.pm.PackageManager
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Process
-import android.util.Log
 import android.view.View
-import android.widget.Button
-import com.example.dovtseetaface6.seeta6.FaceDetector
-import com.example.dovtseetaface6.seeta6.SeetaDevice
-import com.example.dovtseetaface6.seeta6.SeetaImageData
-import com.example.dovtseetaface6.seeta6.SeetaModelSetting
-import java.util.jar.Manifest
+import androidx.appcompat.app.AppCompatActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -35,20 +28,25 @@ class MainActivity : AppCompatActivity() {
 //        faceDetector.loadEngine()
 //        Log.d("dovt1: ", faceDetector.helloWorld().toString())
 
-        if(android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M){
-            for (one in mPermission){
-                if (PackageManager.PERMISSION_GRANTED != this.checkPermission(one, Process.myPid(), Process.myUid())){
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+            for (one in mPermission) {
+                if (PackageManager.PERMISSION_GRANTED != this.checkPermission(
+                        one,
+                        Process.myPid(),
+                        Process.myUid()
+                    )
+                ) {
                     mRequestPermission.add(one)
                 }
-                if (!mRequestPermission.isEmpty()){
+                if (!mRequestPermission.isEmpty()) {
                     this.requestPermissions(mRequestPermission.toTypedArray(), PERMISSION_REQ)
                 }
             }
         }
     }
 
-    fun onClick(view: View){
-        when(view.id){
+    fun onClick(view: View) {
+        when (view.id) {
             R.id.detect -> startActivity(Intent(this, FaceDetectorActivity::class.java))
             R.id.recognize -> startActivity(Intent(this, FaceRecognizerActivity::class.java))
         }

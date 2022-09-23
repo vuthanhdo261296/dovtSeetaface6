@@ -12,6 +12,7 @@ class SeetaImageData {
         this.height = height
         this.channels = channels
     }
+
     constructor(width: Int, height: Int) {
         data = ByteArray(width * height * 1)
         this.width = width

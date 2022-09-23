@@ -1,7 +1,6 @@
 package com.example.dovtseetaface6
 
 import android.app.Activity
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 
 class FaceRecognizerActivity : Activity() {

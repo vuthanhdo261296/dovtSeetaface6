@@ -19,7 +19,7 @@ class CameraPreview : SurfaceView, SurfaceHolder.Callback {
     private val mHolder: SurfaceHolder
     private var mCamera: Camera? = null
     lateinit var faceDetector: FaceDetector
-    var seetaRects : Array<SeetaRect?>? = null
+    var seetaRects: Array<SeetaRect?>? = null
     var seetaImageData: SeetaImageData? = null
 
     constructor(context: Context, mCamera: Camera?) : super(context) {

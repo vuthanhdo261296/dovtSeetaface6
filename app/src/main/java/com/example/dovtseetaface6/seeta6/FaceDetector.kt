@@ -2,8 +2,6 @@ package com.example.dovtseetaface6.seeta6
 
 import android.content.Context
 import android.util.Log
-import com.example.dovtseetaface6.FaceDetectorActivity
-import com.example.dovtseetaface6.MainActivity
 import java.io.BufferedInputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -33,10 +31,12 @@ class FaceDetector {
     external fun helloWorld()
 
     var impl: Long = 0
+
     @Throws(Exception::class)
     external fun construct(setting: SeetaModelSetting)
     external fun construct1(detectModelFile: String)
     external fun dispose()
+
     @Throws(Throwable::class)
     protected fun finalize() {
 //      super.finalize()
@@ -61,10 +61,12 @@ class FaceDetector {
         this.construct1(detectModelFile)
     }
 
-    fun loadEngine(){
+    fun loadEngine() {
         if (null == context) {
-            Log.w(TAG,
-                "please call initial first!")
+            Log.w(
+                TAG,
+                "please call initial first!"
+            )
         }
         Log.w("dovt1: ", "loadEngine: " + getPath("face_detector.csta", context))
         loadEngine(getPath("face_detector.csta", context))

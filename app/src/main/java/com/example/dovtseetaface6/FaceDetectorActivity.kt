@@ -44,7 +44,7 @@ class FaceDetectorActivity : Activity() {
 
         mPreview = CameraPreview(this, mCamera)
 
-        Log.w(TAG, "onCreate: " + mPreview )
+        Log.w(TAG, "onCreate: " + mPreview)
 
         container.addView(mPreview)
 
