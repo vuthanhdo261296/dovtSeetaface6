@@ -3,11 +3,13 @@ package com.example.dovtseetaface6
 import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
+import android.graphics.PixelFormat
 import android.hardware.Camera
 import android.hardware.Camera.CameraInfo
 import android.os.Bundle
 import android.util.Log
 import android.view.Surface
+import android.view.SurfaceView
 import android.widget.Button
 import android.widget.FrameLayout
 import androidx.core.app.ActivityCompat
@@ -31,6 +33,10 @@ class FaceDetectorActivity : Activity() {
 
         btnCapture = findViewById(R.id.btnCapture)
         container = findViewById(R.id.container)
+        var surfaceView = findViewById<SurfaceView>(R.id.surfaceView)
+        surfaceView.setZOrderMediaOverlay(true)
+        surfaceView.getHolder().setFormat(PixelFormat.TRANSLUCENT)
+        Log.d(TAG, "onCreateSurfaceView: " + surfaceView)
 
         if (ContextCompat.checkSelfPermission(
                 this,
@@ -43,6 +49,7 @@ class FaceDetectorActivity : Activity() {
         }
 
         mPreview = CameraPreview(this, mCamera)
+        mPreview?.surfaceView = surfaceView
 
         Log.w(TAG, "onCreate: " + mPreview)
 

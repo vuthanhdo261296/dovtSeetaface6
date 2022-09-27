@@ -5,8 +5,9 @@ import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.Rect
 import android.hardware.Camera
+import android.util.Log
 
-class DrawUtils {
+class DrawUtils() {
     fun adjustRect(
         rect: Rect?,
         previewWidth: Int,
@@ -16,6 +17,8 @@ class DrawUtils {
         cameraOri: Int,
         mCameraId: Int
     ): Rect? {
+        Log.d("dovt3: ", "adjustRect: " + previewWidth + " " +previewHeight + " " + canvasWidth +
+        " " + canvasHeight + " " + cameraOri + " " + mCameraId)
         var previewWidth = previewWidth
         var previewHeight = previewHeight
         if (rect == null) {
@@ -34,10 +37,15 @@ class DrawUtils {
             rect.top *= heightRatio.toInt()
             rect.bottom *= heightRatio.toInt()
         } else {
-            rect.left *= heightRatio.toInt()
-            rect.right *= heightRatio.toInt()
-            rect.top *= widthRatio.toInt()
-            rect.bottom *= widthRatio.toInt()
+            var left = rect.left*heightRatio
+            var right = rect.right*heightRatio
+            var top = rect.top*heightRatio
+            var bottom = rect.bottom*heightRatio
+
+            rect.left = left.toInt()
+            rect.right = right.toInt()
+            rect.top = top.toInt()
+            rect.bottom = bottom.toInt()
         }
         val newRect = Rect()
         when (cameraOri) {

@@ -1,12 +1,17 @@
 package com.example.dovtseetaface6
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
+import android.graphics.*
 import android.hardware.Camera
+import android.hardware.Camera.CameraInfo
+import android.os.Build
+import android.renderscript.*
+import android.util.DisplayMetrics
 import android.util.Log
+import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
+import androidx.annotation.RequiresApi
 import com.example.dovtseetaface6.seeta6.FaceDetector
 import com.example.dovtseetaface6.seeta6.SeetaImageData
 import com.example.dovtseetaface6.seeta6.SeetaRect
@@ -16,11 +21,14 @@ import java.io.IOException
 class CameraPreview : SurfaceView, SurfaceHolder.Callback {
     private var TAG = "dovt2"
 
+    lateinit var surfaceView: SurfaceView
+
     private val mHolder: SurfaceHolder
     private var mCamera: Camera? = null
     lateinit var faceDetector: FaceDetector
     var seetaRects: Array<SeetaRect?>? = null
     var seetaImageData: SeetaImageData? = null
+    private var canvas: Canvas? = null
 
     constructor(context: Context, mCamera: Camera?) : super(context) {
         this.mCamera = mCamera
@@ -32,6 +40,7 @@ class CameraPreview : SurfaceView, SurfaceHolder.Callback {
         mHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS)
     }
 
+    @RequiresApi(Build.VERSION_CODES.R)
     override fun surfaceCreated(holder: SurfaceHolder) {
         // The Surface has been created, now tell the camera where to draw the preview.
         try {
@@ -41,26 +50,129 @@ class CameraPreview : SurfaceView, SurfaceHolder.Callback {
             faceDetector.loadEngine()
             val bmp = BitmapFactory.decodeResource(resources, R.drawable.face3)
             var face1Bytes = getNV21(bmp.width, bmp.height, bmp)
+            var yuvType: Type.Builder? = null
+            var rgbaType: Type.Builder? = null
+            var rs: RenderScript? = null
+            var `in`: Allocation? = null
+            var out:Allocation? = null
+            var yuvToRgbIntrinsic: ScriptIntrinsicYuvToRGB? = null
+            var displayOrientation: Int? = null
 
-//            val parameters: Camera.Parameters = mCamera!!.getParameters()
-//            parameters.setPreviewSize(640, 480)
-//            mCamera!!.setParameters(parameters)
-            Log.d(TAG, "surfaceCreated1: " + mCamera!!.parameters.previewSize.height)
+            rs = RenderScript.create(context)
+            yuvToRgbIntrinsic = ScriptIntrinsicYuvToRGB.create(rs, Element.U8_4(rs))
+
+            displayOrientation = getCameraOri(context.display!!.rotation)
+            Log.d(TAG, "surfaceCreatedrotation: " + context.display!!.rotation)
+            val cameraWidth = 1920
+            val cameraHeight = 1080
+            val metrics = DisplayMetrics()
+            context.display?.getMetrics(metrics)
+            val parameters: Camera.Parameters = mCamera!!.getParameters()
+            parameters.setPreviewSize(cameraWidth, cameraHeight)
+            mCamera!!.setParameters(parameters)
+
+            Log.w(TAG,"surfaceCreated: w=$cameraWidth,h=$cameraHeight")
 
             mCamera!!.setPreviewCallback { bytes, camera ->
                 val time = System.currentTimeMillis()
                 try {
-                    //Log.w(TAG, "onPreviewFrame: time=" + time + ",len=" + bytes.size)
+                    Log.w(TAG,"onPreviewFrame: time=" + time + ",len=" + bytes.size)
+                    if (yuvType == null) {
+                        yuvType = Type.Builder(rs, Element.U8(rs)).setX(bytes.size)
+                        `in` = Allocation.createTyped(rs, yuvType?.create(), Allocation.USAGE_SCRIPT)
+                        rgbaType = Type.Builder(rs, Element.RGBA_8888(rs)).setX(cameraWidth).setY(cameraHeight)
+                        out = Allocation.createTyped(rs, rgbaType?.create(), Allocation.USAGE_SCRIPT)
+                    }
+                    `in`?.copyFrom(bytes)
+                    yuvToRgbIntrinsic.setInput(`in`)
+                    yuvToRgbIntrinsic.forEach(out)
                 } catch (e: Exception) {
                     e.printStackTrace()
                 }
+                var bitmap = Bitmap.createBitmap(cameraWidth, cameraHeight, Bitmap.Config.ARGB_8888)
+                out?.copyTo(bitmap)
 
-                seetaImageData = SeetaImageData(1920, 1080, 1)
+                seetaImageData = SeetaImageData(cameraWidth, cameraHeight)
                 seetaImageData!!.data = bytes.clone()
                 Log.d(TAG, "surfaceCreated: " + bytes.size)
                 Log.d(TAG, "surfaceCreated: " + seetaImageData!!.data.contentToString())
                 seetaRects = faceDetector.Detect(seetaImageData)
                 Log.d(TAG, "seetaRects: " + seetaRects?.size)
+
+                if (seetaRects?.size!! > 0) {
+
+                    Log.w(TAG,"onPreviewFrame: time=" + (System.currentTimeMillis() - time))
+                    for (seetaRect in seetaRects!!){
+                        Log.d(TAG, "surfaceCreatedseetaRect: " + seetaRect!!.x + " " + seetaRect.y + " " + seetaRect.width +" "  +  seetaRect.height)
+                        val maxRect = Rect(seetaRect!!.x, seetaRect.y, seetaRect.width + seetaRect.x, seetaRect.height + seetaRect.y)
+                        if (maxRect.left - 10 >= 0) {
+                            maxRect.left -= 10
+                        }
+                        if (maxRect.right + 20 <= cameraWidth) {
+                            maxRect.right += 20
+                        }
+                        if (maxRect.top - 10 >= 0) {
+                            maxRect.top -= 10
+                        }
+                        if (maxRect.bottom <= cameraHeight) {
+                            maxRect.bottom += 20
+                        }
+
+                        Log.d(TAG, "surfaceCreatedseetaRect: " + seetaRect!!.x + " " + seetaRect.y + " " + seetaRect.width +" " +  seetaRect.height)
+                        Log.w(TAG,"onPreviewFrame: time2=" + (System.currentTimeMillis() - time))
+                        Log.d(TAG, "surfaceCreatedsurfaceView: " + surfaceView)
+                        if (surfaceView != null) {
+                            canvas = null
+                            surfaceView?.setVisibility(VISIBLE)
+                            try {
+                                canvas = surfaceView?.getHolder()?.lockCanvas()
+                                Log.w(TAG,"onPreviewFrame: canvas=$canvas")
+                                if (canvas != null) {
+                                    synchronized(surfaceView!!.holder) {
+                                        canvas!!.drawColor(0, PorterDuff.Mode.CLEAR)
+                                        val rect = Rect(maxRect.left, maxRect.top, maxRect.right, maxRect.bottom)
+                                        val width = rect!!.right - rect!!.left
+                                        val height = rect!!.bottom - rect!!.top
+                                        bitmap = Bitmap.createBitmap(bitmap, rect!!.left, rect!!.top, width, height)
+
+                                        Log.w(TAG,"onPreviewFrame: time3=" + (System.currentTimeMillis() - time))
+                                        if (rect != null) {
+                                            val adjustedRect: Rect? = DrawUtils().adjustRect(
+                                                rect,
+                                                cameraWidth,
+                                                cameraHeight,
+                                                canvas!!.getWidth(),
+                                                canvas!!.getHeight(),
+                                                displayOrientation,
+                                                1
+                                            )
+                                            Log.d(TAG, "surfaceCreatedcanvas: " + canvas!!.width + " " + canvas!!.height + " " + displayOrientation)
+                                            Log.d(TAG, "surfaceCreatedadjustedRect: " + adjustedRect!!.left + " " + adjustedRect!!.top + " " + adjustedRect!!.right + " " + adjustedRect!!.bottom)
+                                            //画人脸框
+                                            DrawUtils().drawFaceRect(canvas, adjustedRect, Color.YELLOW,5)
+                                            Log.w(TAG,"onPreviewFrame: time4=" + (System.currentTimeMillis() - time))
+                                        }
+                                    }
+                                }
+                            } catch (ex: Exception) {
+                            } finally {
+                                if (canvas != null) {
+                                    surfaceView?.getHolder()?.unlockCanvasAndPost(canvas)
+                                }
+                            }
+                        }
+
+
+                    }
+
+
+
+                } else {
+                    if (surfaceView != null) {
+                        surfaceView!!.setVisibility(INVISIBLE)
+                    }
+                }
+
             }
 
             mCamera!!.startPreview()
@@ -115,6 +227,28 @@ class CameraPreview : SurfaceView, SurfaceHolder.Callback {
                 index++
             }
         }
+    }
+
+    private fun getCameraOri(rotation: Int): Int {
+        var camereId = 1 //front
+        var degrees = rotation * 90
+        when (rotation) {
+            Surface.ROTATION_0 -> degrees = 0
+            Surface.ROTATION_90 -> degrees = 90
+            Surface.ROTATION_180 -> degrees = 180
+            Surface.ROTATION_270 -> degrees = 270
+            else -> {}
+        }
+        var result: Int
+        val info = CameraInfo()
+        Camera.getCameraInfo(camereId, info)
+        if (info.facing == CameraInfo.CAMERA_FACING_FRONT) {
+            result = (info.orientation + degrees) % 360
+            result = (360 - result) % 360
+        } else {
+            result = (info.orientation - degrees + 360) % 360
+        }
+        return result
     }
 
     override fun surfaceDestroyed(holder: SurfaceHolder) {
