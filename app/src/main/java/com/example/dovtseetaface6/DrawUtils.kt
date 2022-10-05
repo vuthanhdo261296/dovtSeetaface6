@@ -39,8 +39,8 @@ class DrawUtils() {
         } else {
             var left = rect.left*heightRatio
             var right = rect.right*heightRatio
-            var top = rect.top*heightRatio
-            var bottom = rect.bottom*heightRatio
+            var top = rect.top*widthRatio
+            var bottom = rect.bottom*widthRatio
 
             rect.left = left.toInt()
             rect.right = right.toInt()

@@ -39,7 +39,7 @@ class FaceDetector {
 
     @Throws(Throwable::class)
     protected fun finalize() {
-//      super.finalize()
+        //super.finalize()
         dispose()
     }
 
@@ -97,5 +97,6 @@ class FaceDetector {
 
     constructor(context: Context) {
         this.context = context
+        this.loadEngine()
     }
 }

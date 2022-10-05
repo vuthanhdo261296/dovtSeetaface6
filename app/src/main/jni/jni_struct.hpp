@@ -1,6 +1,7 @@
 #include <jni.h>
 
 #include "include/CStruct.h"
+#include "include/CTrackingFaceInfo.h"
 
 #include <string>
 #include <vector>
@@ -100,6 +101,45 @@ static jobjectArray jni_convert(JNIEnv *env, const std::vector<SeetaRect> &nativ
 	for (jsize i = 0; i < infos_size; ++i)
 	{
 		jobject info = jni_convert(env, native_infos[i]);
+		env->SetObjectArrayElement(infos, i, info);
+	}
+
+	return infos;
+}
+
+static jobject jni_convert_tracking_face_info(JNIEnv *env, const SeetaTrackingFaceInfo& native_tracking_info)
+{
+	jclass SeetaTrackingFaceInfo_class = env->FindClass("com/example/dovtseetaface6/seeta6/SeetaTrackingFaceInfo");
+	jfieldID SeetaTrackingFaceInfo_field_x = env->GetFieldID(SeetaTrackingFaceInfo_class, "x", "I");
+	jfieldID SeetaTrackingFaceInfo_field_y = env->GetFieldID(SeetaTrackingFaceInfo_class, "y", "I");
+	jfieldID SeetaTrackingFaceInfo_field_width = env->GetFieldID(SeetaTrackingFaceInfo_class, "width", "I");
+	jfieldID SeetaTrackingFaceInfo_field_height = env->GetFieldID(SeetaTrackingFaceInfo_class, "height", "I");
+	jfieldID SeetaTrackingFaceInfo_field_score = env->GetFieldID(SeetaTrackingFaceInfo_class, "score", "F");
+	jfieldID SeetaTrackingFaceInfo_field_frame_no = env->GetFieldID(SeetaTrackingFaceInfo_class, "frame_no", "I");
+	jfieldID SeetaTrackingFaceInfo_field_PID = env->GetFieldID(SeetaTrackingFaceInfo_class, "PID", "I");
+	jmethodID SeetaTrackingFaceInfo_method_ctor = env->GetMethodID(SeetaTrackingFaceInfo_class, "<init>", "()V");
+
+	jobject tracking_info = env->NewObject(SeetaTrackingFaceInfo_class, SeetaTrackingFaceInfo_method_ctor);
+	env->SetIntField(tracking_info, SeetaTrackingFaceInfo_field_x, native_tracking_info.pos.x);
+	env->SetIntField(tracking_info, SeetaTrackingFaceInfo_field_y, native_tracking_info.pos.y);
+	env->SetIntField(tracking_info, SeetaTrackingFaceInfo_field_width, native_tracking_info.pos.width);
+	env->SetIntField(tracking_info, SeetaTrackingFaceInfo_field_height, native_tracking_info.pos.height);
+	env->SetFloatField(tracking_info, SeetaTrackingFaceInfo_field_score, native_tracking_info.score);
+	env->SetIntField(tracking_info, SeetaTrackingFaceInfo_field_frame_no, native_tracking_info.frame_no);
+	env->SetIntField(tracking_info, SeetaTrackingFaceInfo_field_PID, native_tracking_info.PID);
+
+	return tracking_info;
+}
+
+static jobjectArray jni_convert_tracking_face_info(JNIEnv *env, const SeetaTrackingFaceInfoArray& native_tracking_infos)
+{
+	jclass SeetaTrackingFaceInfo_class = env->FindClass("com/example/dovtseetaface6/seeta6/SeetaTrackingFaceInfo");
+	jsize infos_size = native_tracking_infos.size;
+	jobjectArray infos = env->NewObjectArray(infos_size, SeetaTrackingFaceInfo_class, nullptr);
+
+	for (jsize i = 0; i < infos_size; ++i)
+	{
+		jobject info = jni_convert_tracking_face_info(env, native_tracking_infos.data[i]);
 		env->SetObjectArrayElement(infos, i, info);
 	}
 

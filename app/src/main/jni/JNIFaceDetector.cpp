@@ -170,7 +170,7 @@ JNIEXPORT void JNICALL Java_com_example_dovtseetaface6_seeta6_FaceDetector_const
   }
 
 
-  JNIEXPORT void JNICALL Java_come_example_dovtseetaface6_seeta6_FaceDetector_set
+  JNIEXPORT void JNICALL Java_com_example_dovtseetaface6_seeta6_FaceDetector_set
   (JNIEnv *env, jobject self, jobject property, jdouble value)
   {
         jclass enumclass= env->GetObjectClass(property);
@@ -193,7 +193,7 @@ JNIEXPORT void JNICALL Java_com_example_dovtseetaface6_seeta6_FaceDetector_const
   }
 
 
-  JNIEXPORT jdouble JNICALL Java_come_example_dovtseetaface6_seeta6_FaceDetector_get
+  JNIEXPORT jdouble JNICALL Java_com_example_dovtseetaface6_seeta6_FaceDetector_get
   (JNIEnv *env, jobject self, jobject property)
   {
         jclass enumclass= env->GetObjectClass(property);

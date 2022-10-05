@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.graphics.PixelFormat
 import android.hardware.Camera
 import android.hardware.Camera.CameraInfo
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.Surface
